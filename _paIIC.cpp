@@ -75,21 +75,21 @@ uint8_t paIIC::writeLen(unsigned char iicId,
                         unsigned char addr,
                         unsigned char length, ByteArr data_wr[])
 {
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-
+    static i2c_cmd_handle_t cmdhandle;
     switch (iicId)
     {
     case 0:
     {
-        i2c_master_start(cmd);
+        cmdhandle = i2c_cmd_link_create();
+        i2c_master_start(cmdhandle);
         //addr
-        i2c_master_write_byte(cmd, (addr << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
+        i2c_master_write_byte(cmdhandle, (addr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
         // ESP_LOGI("IIC", "addr:%x len:%d", addr, length);
         for (int i = 0; i < length; i++)
         {
             // for(int j=0;j<data_wr[i].len;)
-            ESP_LOGI("IIC", "data:%2x %2x", *(data_wr[i].arrPtr), *(data_wr[i].arrPtr + 1));
-            i2c_master_write(cmd, data_wr[i].arrPtr, data_wr[i].len, ACK_CHECK_EN);
+            // ESP_LOGI("IIC", "data:%2x %2x", *(data_wr[i].arrPtr), *(data_wr[i].arrPtr + 1));
+            i2c_master_write(cmdhandle, data_wr[i].arrPtr, data_wr[i].len, ACK_CHECK_EN);
         }
         //data
         // if (size > 1)
@@ -98,7 +98,9 @@ uint8_t paIIC::writeLen(unsigned char iicId,
         // }
 
         // i2c_master_read_byte(cmd, data_rd + size - 1, NACK_VAL);
-        i2c_master_stop(cmd);
+        i2c_master_stop(cmdhandle);
+        esp_err_t ret = i2c_master_cmd_begin(iicId, cmdhandle, 100 / portTICK_RATE_MS);
+        i2c_cmd_link_delete(cmdhandle);
     }
     break;
 
