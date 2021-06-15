@@ -1,7 +1,10 @@
+#ifndef ___PASPI_PLATFORM_H__
+#define ___PASPI_PLATFORM_H__
+
 #include "Conf_platform.h"
 
 #if PLATFORM_ESP32
-#define SPI_HOST HSPI_HOST
+#define PASPI_HOST HSPI_HOST
 
 #define PIN_NUM_MISO 25
 #define PIN_NUM_MOSI 23
@@ -12,7 +15,7 @@
 // #define PIN_NUM_RST 18
 // #define PIN_NUM_BCKL 5
 #elif PLATFORM_ESP32_S2
-#define SPI_HOST SPI2_HOST
+#define PASPI_HOST SPI2_HOST
 
 #define PIN_NUM_MISO 37
 #define PIN_NUM_MOSI 35
@@ -23,7 +26,7 @@
 // #define PIN_NUM_RST 5
 // #define PIN_NUM_BCKL 6
 #elif PLATFORM_ESP32_C3
-#define SPI_HOST SPI2_HOST
+#define PASPI_HOST SPI2_HOST
 
 #define PIN_NUM_MISO 2
 #define PIN_NUM_MOSI 7
@@ -34,3 +37,4 @@
 // #define PIN_NUM_RST 4
 // #define PIN_NUM_BCKL 5
 #endif
+#endif // ___PASPI.PLATFORM_H__

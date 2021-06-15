@@ -3,35 +3,50 @@
 #include "driver/spi_master.h"
 #include "_paSPI.PLATFORM.h"
 #include "esp_system.h"
+#include "string.h"
 
-spi_device_handle_t spi_handle;
+// spi_device_handle_t spi_handle;
+namespace N_paSPI
+{
+    spi_device_handle_t spi_handle;
+    void callback(spi_transaction_t *trans)
+    {
+    }
+}
+using namespace N_paSPI;
 
 paErr paSPI::init(char spiId)
 {
-    spi_bus_config_t buscfg = {
-        .miso_io_num = PIN_NUM_MISO,
-        .mosi_io_num = PIN_NUM_MOSI,
-        .sclk_io_num = PIN_NUM_CLK,
-        .quadwp_io_num = -1,
-        .quadhd_io_num = -1,
-        .max_transfer_sz = PARALLEL_LINES * 320 * 2 + 8};
-    spi_device_interface_config_t devcfg = {
+    spi_bus_config_t buscfg;
+    {
+        memset(&buscfg, 0, sizeof(spi_bus_config_t));
+        buscfg.miso_io_num = PIN_NUM_MISO;
+        buscfg.mosi_io_num = PIN_NUM_MOSI;
+        buscfg.sclk_io_num = PIN_NUM_CLK;
+        buscfg.quadwp_io_num = -1;
+        buscfg.quadhd_io_num = -1;
+        buscfg.max_transfer_sz = SOC_SPI_MAXIMUM_BUFFER_SIZE;
+    }
+
+    spi_device_interface_config_t devcfg;
+    {
+        memset(&devcfg, 0, sizeof(spi_device_interface_config_t));
 #ifdef CONFIG_SPI_OVERCLOCK
-        .clock_speed_hz = 26 * 1000 * 1000, //Clock out at 26 MHz
+        devcfg.clock_speed_hz = 26 * 1000 * 1000; //Clock out at 26 MHz
 #else
-        .clock_speed_hz = 10 * 1000 * 1000, //Clock out at 10 MHz
+        devcfg.clock_speed_hz = 10 * 1000 * 1000; //Clock out at 10 MHz
 #endif
-        .mode = 0,                               //SPI mode 0
-        .spics_io_num = -1,                      //CS pin
-        .queue_size = 7,                         //We want to be able to queue 7 transactions at a time
-        .pre_cb = lcd_spi_pre_transfer_callback, //Specify pre-transfer callback to handle D/C line
+        devcfg.mode = 0;          //SPI mode 0
+        devcfg.spics_io_num = -1; //CS pin
+        devcfg.queue_size = 7;    //We want to be able to queue 7 transactions at a time
+        devcfg.pre_cb = callback; //Specify pre-transfer callback to handle D/C line
     };
 
     esp_err_t ret;
 
-    ret = spi_bus_initialize(SPI_HOST, &buscfg, 0);
+    ret = spi_bus_initialize(PASPI_HOST, &buscfg, 0);
     ESP_ERROR_CHECK(ret);
-    ret = spi_bus_add_device(SPI_HOST, &devcfg, &spi_handle);
+    ret = spi_bus_add_device(PASPI_HOST, &devcfg, &spi_handle);
     ESP_ERROR_CHECK(ret);
 
     if (ret != ESP_OK)
@@ -52,7 +67,7 @@ paErr paSPI::transmit(char spiId, unsigned char *data, unsigned int len)
     t.length = len;
     // t.tx_buffer = buffer;
 
-    esp_err_t ret = spi_device_transmit(rc522_spi, &t);
+    esp_err_t ret = spi_device_transmit(spi_handle, &t);
 
     // free(buffer);
 
