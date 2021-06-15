@@ -4,6 +4,7 @@
 #include "_paSPI.PLATFORM.h"
 #include "esp_system.h"
 #include "string.h"
+#include "esp_log.h"
 
 // spi_device_handle_t spi_handle;
 namespace N_paSPI
@@ -46,15 +47,27 @@ paErr paSPI::init(char spiId)
 
     ret = spi_bus_initialize(PASPI_HOST, &buscfg, 0);
     ESP_ERROR_CHECK(ret);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE("App", "spi Fail");
+        return E_Err;
+    }
+    else
+    {
+        ESP_LOGI("App", "spi succ");
+        return E_Succ;
+    }
     ret = spi_bus_add_device(PASPI_HOST, &devcfg, &spi_handle);
     ESP_ERROR_CHECK(ret);
 
     if (ret != ESP_OK)
     {
+        ESP_LOGE("App", "spi Fail");
         return E_Err;
     }
     else
     {
+        ESP_LOGI("App", "spi succ");
         return E_Succ;
     }
 }
@@ -65,6 +78,7 @@ paErr paSPI::transmit(char spiId, unsigned char *data, unsigned int len)
     memset(&t, 0, sizeof(t));
 
     t.length = len;
+    t.tx_buffer = data;
     // t.tx_buffer = buffer;
 
     esp_err_t ret = spi_device_transmit(spi_handle, &t);
@@ -73,10 +87,12 @@ paErr paSPI::transmit(char spiId, unsigned char *data, unsigned int len)
 
     if (ret != ESP_OK)
     {
+        ESP_LOGE("App", "spi send Fail");
         return E_Err;
     }
     else
     {
+        ESP_LOGI("App", "spi send succ");
         return E_Succ;
     }
 }
