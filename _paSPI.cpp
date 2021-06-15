@@ -50,12 +50,12 @@ paErr paSPI::init(char spiId)
     if (ret != ESP_OK)
     {
         ESP_LOGE("App", "spi Fail");
-        return E_Err;
+        // return E_Err;
     }
     else
     {
         ESP_LOGI("App", "spi succ");
-        return E_Succ;
+        // return E_Succ;
     }
     ret = spi_bus_add_device(PASPI_HOST, &devcfg, &spi_handle);
     ESP_ERROR_CHECK(ret);
