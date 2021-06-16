@@ -41,6 +41,7 @@ paErr paSPI::init(char spiId)
         devcfg.spics_io_num = -1; //CS pin
         devcfg.queue_size = 7;    //We want to be able to queue 7 transactions at a time
         devcfg.pre_cb = callback; //Specify pre-transfer callback to handle D/C line
+        // devcfg.command_bits = 8; 这句千万不要加，加了就死活不通
     };
 
     esp_err_t ret;
@@ -77,22 +78,23 @@ paErr paSPI::transmit(char spiId, unsigned char *data, unsigned int len)
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
 
-    t.length = len;
+    t.length = len * 8;
+    // t.tx_data = data;
+    // t.flags=SPI_TRANS_USE_TXDATA;
     t.tx_buffer = data;
-    // t.tx_buffer = buffer;
 
-    esp_err_t ret = spi_device_transmit(spi_handle, &t);
+    esp_err_t ret = spi_device_polling_transmit(spi_handle, &t);
 
     // free(buffer);
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE("App", "spi send Fail");
+        // ESP_LOGE("App", "spi send Fail");
         return E_Err;
     }
     else
     {
-        ESP_LOGI("App", "spi send succ");
+        // ESP_LOGI("App", "spi send succ");
         return E_Succ;
     }
 }
