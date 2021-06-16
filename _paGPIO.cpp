@@ -1,4 +1,4 @@
-#include "paCoreHead/paGPIO.h"
+#include "paCoreInc/drv/paGPIO.h"
 using namespace N_paGPIO;
 /**
  * related article about gpio

@@ -1,5 +1,4 @@
-#include "paCoreHead/paSPI.h"
-#include "paBase/_ForCore.h"
+#include "paCoreInc/drv/paSPI.h"
 #include "driver/spi_master.h"
 #include "_paSPI.PLATFORM.h"
 #include "esp_system.h"
