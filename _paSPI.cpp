@@ -34,7 +34,7 @@ paErr paSPI::init(char spiId)
 #ifdef CONFIG_SPI_OVERCLOCK
         devcfg.clock_speed_hz = 26 * 1000 * 1000; //Clock out at 26 MHz
 #else
-        devcfg.clock_speed_hz = 10 * 1000 * 1000; //Clock out at 10 MHz
+        devcfg.clock_speed_hz = SPI_MASTER_FREQ_80M; // * 1000 * 1000; //Clock out at 10 MHz
 #endif
         devcfg.mode = 0;          //SPI mode 0
         devcfg.spics_io_num = -1; //CS pin
@@ -45,7 +45,7 @@ paErr paSPI::init(char spiId)
 
     esp_err_t ret;
 
-    ret = spi_bus_initialize(PASPI_HOST, &buscfg, 0);
+    ret = spi_bus_initialize(PASPI_HOST, &buscfg, SPI_DMA_CH_AUTO);
     ESP_ERROR_CHECK(ret);
     if (ret != ESP_OK)
     {
@@ -76,22 +76,33 @@ paErr paSPI::transmit(char spiId, unsigned char *data, unsigned int len)
 {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
-
-    t.length = len * 8;
-    // t.tx_data = data;
-    // t.flags=SPI_TRANS_USE_TXDATA;
+    t.rxlength = 0;
+    t.rx_buffer = NULL;
     t.tx_buffer = data;
 
-    esp_err_t ret = spi_device_polling_transmit(spi_handle, &t);
-
-    // free(buffer);
-
-    if (ret != ESP_OK)
+    int sizePer = 64;
+    while (len > 0)
     {
-        // ESP_LOGE("App", "spi send Fail");
-        return E_Err;
+        if (len > sizePer)
+        {
+            t.length = (sizePer)*8;
+        }
+        else
+        {
+            t.length = len * 8;
+        }
+        t.rxlength = 0;
+        t.rx_buffer = NULL;
+        // t.tx_data = data;
+        // t.flags=SPI_TRANS_USE_TXDATA;
+
+        /* code */
+        // spi_device_get_trans_result()
+        spi_device_polling_transmit(spi_handle, &t);
+        len -= t.length / 8;
+        t.tx_buffer += t.length / 8;
     }
-    else
+
     {
         // ESP_LOGI("App", "spi send succ");
         return E_Succ;
